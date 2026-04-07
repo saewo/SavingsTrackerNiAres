@@ -1,10 +1,14 @@
 package panels;
 
-import model.SavingsDataStore;
-import model.SavingsRecord;
+import model.SavingsTrackerSystem;
+import model.BankAccount;
+import model.Wallet;
+import model.Transaction;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.*;
 
 /**
@@ -13,18 +17,19 @@ import java.awt.*;
 public class EditSavingsPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
+    private List<SavingsTrackerSystem.TransactionRecord> rowMapping;
 
     public EditSavingsPanel() {
         setLayout(new BorderLayout());
 
         // Title
-        JLabel title = new JLabel("Edit / Delete Records", SwingConstants.CENTER);
+        JLabel title = new JLabel("Edit / Delete Transactions", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
 
         // Table setup
-        String[] columns = {"ID", "Description", "Amount ($)", "Date", "Category"};
+        String[] columns = {"Wallet", "Description", "Amount ($)", "Date", "Type"};
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
@@ -52,8 +57,16 @@ public class EditSavingsPanel extends JPanel {
 
     public void refreshTable() {
         tableModel.setRowCount(0);
-        for (SavingsRecord record : SavingsDataStore.getInstance().getAllRecords()) {
-            tableModel.addRow(record.toTableRow());
+        rowMapping = new ArrayList<>();
+        SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
+        
+        for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
+            for (Wallet wallet : bank.getWallets()) {
+                for (Transaction t : wallet.getTransactions()) {
+                    tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+                    rowMapping.add(new SavingsTrackerSystem.TransactionRecord(bank, wallet, t));
+                }
+            }
         }
     }
 
@@ -64,12 +77,13 @@ public class EditSavingsPanel extends JPanel {
             return;
         }
 
-        SavingsRecord record = SavingsDataStore.getInstance().getAllRecords().get(selectedRow);
+        SavingsTrackerSystem.TransactionRecord record = rowMapping.get(selectedRow);
+        Transaction t = record.transaction;
 
-        String newDesc = JOptionPane.showInputDialog(this, "New Description:", record.getDescription());
+        String newDesc = JOptionPane.showInputDialog(this, "New Description:", t.getDescription());
         if (newDesc == null) return;
 
-        String newAmountStr = JOptionPane.showInputDialog(this, "New Amount ($):", record.getAmount());
+        String newAmountStr = JOptionPane.showInputDialog(this, "New Amount ($):", t.getAmount());
         if (newAmountStr == null) return;
 
         double newAmount;
@@ -80,18 +94,36 @@ public class EditSavingsPanel extends JPanel {
             return;
         }
 
-        String newDate = JOptionPane.showInputDialog(this, "New Date (YYYY-MM-DD):", record.getDate());
+        String newDate = JOptionPane.showInputDialog(this, "New Date (YYYY-MM-DD):", t.getDate());
         if (newDate == null) return;
 
-        String newCat = JOptionPane.showInputDialog(this, "New Category:", record.getCategory());
-        if (newCat == null) return;
+        String[] types = {"Income", "Expense"};
+        String newType = (String) JOptionPane.showInputDialog(this, "New Type:", "Edit Type", 
+                JOptionPane.QUESTION_MESSAGE, null, types, t.getType());
+        if (newType == null) return;
 
-        record.setDescription(newDesc);
-        record.setAmount(newAmount);
-        record.setDate(newDate);
-        record.setCategory(newCat);
+        // Update balance of the wallet before updating the transaction (simple way)
+        // Adjust for old transaction
+        if (t.getType().equalsIgnoreCase("Expense")) {
+            record.wallet.setBalance(record.wallet.getBalance() + t.getAmount());
+        } else {
+            record.wallet.setBalance(record.wallet.getBalance() - t.getAmount());
+        }
 
-        JOptionPane.showMessageDialog(this, "Record updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Apply new values
+        t.setDescription(newDesc);
+        t.setAmount(newAmount);
+        t.setDate(newDate);
+        t.setType(newType);
+
+        // Adjust for new transaction
+        if (t.getType().equalsIgnoreCase("Expense")) {
+            record.wallet.setBalance(record.wallet.getBalance() - t.getAmount());
+        } else {
+            record.wallet.setBalance(record.wallet.getBalance() + t.getAmount());
+        }
+
+        JOptionPane.showMessageDialog(this, "Transaction updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         refreshTable();
     }
 
@@ -102,10 +134,20 @@ public class EditSavingsPanel extends JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete selected record?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Delete selected transaction?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            SavingsDataStore.getInstance().removeRecord(selectedRow);
-            JOptionPane.showMessageDialog(this, "Record deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            SavingsTrackerSystem.TransactionRecord record = rowMapping.get(selectedRow);
+            Transaction t = record.transaction;
+            
+            // Adjust balance
+            if (t.getType().equalsIgnoreCase("Expense")) {
+                record.wallet.setBalance(record.wallet.getBalance() + t.getAmount());
+            } else {
+                record.wallet.setBalance(record.wallet.getBalance() - t.getAmount());
+            }
+            
+            record.wallet.getTransactions().remove(t);
+            JOptionPane.showMessageDialog(this, "Transaction deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             refreshTable();
         }
     }

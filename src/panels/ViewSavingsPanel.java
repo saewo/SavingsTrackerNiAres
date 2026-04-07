@@ -1,7 +1,9 @@
 package panels;
 
-import model.SavingsDataStore;
-import model.SavingsRecord;
+import model.SavingsTrackerSystem;
+import model.BankAccount;
+import model.Wallet;
+import model.Transaction;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -18,13 +20,13 @@ public class ViewSavingsPanel extends JPanel {
         setLayout(new BorderLayout());
 
         // Title
-        JLabel title = new JLabel("Savings History", SwingConstants.CENTER);
+        JLabel title = new JLabel("All Transactions", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
 
         // Table setup
-        String[] columns = {"ID", "Description", "Amount ($)", "Date", "Category"};
+        String[] columns = {"Wallet", "Description", "Amount ($)", "Date", "Type"};
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
@@ -43,8 +45,13 @@ public class ViewSavingsPanel extends JPanel {
 
     public void refreshTable() {
         tableModel.setRowCount(0);
-        for (SavingsRecord record : SavingsDataStore.getInstance().getAllRecords()) {
-            tableModel.addRow(record.toTableRow());
+        SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
+        for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
+            for (Wallet wallet : bank.getWallets()) {
+                for (Transaction t : wallet.getTransactions()) {
+                    tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+                }
+            }
         }
     }
 

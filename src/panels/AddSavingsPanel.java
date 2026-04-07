@@ -1,26 +1,30 @@
 package panels;
 
-import model.SavingsDataStore;
-import model.SavingsRecord;
+import model.SavingsTrackerSystem;
+import model.Transaction;
+import model.BankAccount;
+import model.Wallet;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * Panel for adding a new savings record.
  */
 public class AddSavingsPanel extends JPanel {
-    private JTextField idField;
     private JTextField descriptionField;
     private JTextField amountField;
     private JTextField dateField;
-    private JTextField categoryField;
+    private JComboBox<String> typeComboBox;
+    private JComboBox<BankAccount> bankComboBox;
+    private JComboBox<Wallet> walletComboBox;
 
     public AddSavingsPanel() {
         setLayout(new BorderLayout());
 
         // Title
-        JLabel title = new JLabel("Add New Savings Record", SwingConstants.CENTER);
+        JLabel title = new JLabel("Add New Transaction", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
@@ -32,57 +36,91 @@ public class AddSavingsPanel extends JPanel {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ID
+        // Bank selection
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(new JLabel("Transaction ID:"), gbc);
+        formPanel.add(new JLabel("Bank:"), gbc);
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
-        idField = new JTextField(20);
-        formPanel.add(idField, gbc);
+        bankComboBox = new JComboBox<>();
+        bankComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof BankAccount) {
+                    setText(((BankAccount) value).getBankName());
+                }
+                return this;
+            }
+        });
+        bankComboBox.addActionListener(e -> updateWallets());
+        formPanel.add(bankComboBox, gbc);
 
-        // Description
+        // Wallet selection
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
-        formPanel.add(new JLabel("Description:"), gbc);
+        formPanel.add(new JLabel("Wallet:"), gbc);
         gbc.gridx = 1;
         gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        walletComboBox = new JComboBox<>();
+        walletComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Wallet) {
+                    setText(((Wallet) value).getWalletName());
+                }
+                return this;
+            }
+        });
+        formPanel.add(walletComboBox, gbc);
+
+        // Type
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        formPanel.add(new JLabel("Type:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        typeComboBox = new JComboBox<>(new String[]{"Income", "Expense"});
+        formPanel.add(typeComboBox, gbc);
+
+        // Description
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        formPanel.add(new JLabel("Description:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
         gbc.weightx = 1.0;
         descriptionField = new JTextField(20);
         formPanel.add(descriptionField, gbc);
 
         // Amount
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 4;
         gbc.weightx = 0;
         formPanel.add(new JLabel("Amount ($):"), gbc);
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 4;
         gbc.weightx = 1.0;
         amountField = new JTextField(20);
         formPanel.add(amountField, gbc);
 
         // Date
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 5;
         formPanel.add(new JLabel("Date (YYYY-MM-DD):"), gbc);
         gbc.gridx = 1;
-        gbc.gridy = 3;
+        gbc.gridy = 5;
         gbc.weightx = 1.0;
         dateField = new JTextField(20);
+        dateField.setText("2026-04-07"); // Default to today
         formPanel.add(dateField, gbc);
-
-        // Category
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        formPanel.add(new JLabel("Category:"), gbc);
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        gbc.weightx = 1.0;
-        categoryField = new JTextField(20);
-        formPanel.add(categoryField, gbc);
 
         add(formPanel, BorderLayout.CENTER);
 
@@ -99,16 +137,50 @@ public class AddSavingsPanel extends JPanel {
         buttonPanel.add(clearBtn);
 
         add(buttonPanel, BorderLayout.SOUTH);
+        
+        refreshData();
+    }
+
+    private void updateWallets() {
+        walletComboBox.removeAllItems();
+        BankAccount selectedBank = (BankAccount) bankComboBox.getSelectedItem();
+        if (selectedBank != null) {
+            for (Wallet w : selectedBank.getWallets()) {
+                walletComboBox.addItem(w);
+            }
+        }
+    }
+
+    private void refreshData() {
+        bankComboBox.removeAllItems();
+        List<BankAccount> banks = SavingsTrackerSystem.getInstance().getCurrentUser().getBankAccounts();
+        for (BankAccount b : banks) {
+            bankComboBox.addItem(b);
+        }
+        updateWallets();
+    }
+
+    @Override
+    public void setVisible(boolean aFlag) {
+        super.setVisible(aFlag);
+        if (aFlag) {
+            refreshData();
+        }
     }
 
     private void addRecord() {
-        String id = idField.getText().trim();
+        Wallet selectedWallet = (Wallet) walletComboBox.getSelectedItem();
+        if (selectedWallet == null) {
+            JOptionPane.showMessageDialog(this, "Please select a bank and wallet.");
+            return;
+        }
+
+        String type = (String) typeComboBox.getSelectedItem();
         String description = descriptionField.getText().trim();
         String amountText = amountField.getText().trim();
         String date = dateField.getText().trim();
-        String category = categoryField.getText().trim();
 
-        if (id.isEmpty() || description.isEmpty() || amountText.isEmpty() || date.isEmpty() || category.isEmpty()) {
+        if (description.isEmpty() || amountText.isEmpty() || date.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Please fill in all fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
@@ -123,23 +195,17 @@ public class AddSavingsPanel extends JPanel {
             return;
         }
 
-        if (SavingsDataStore.getInstance().findById(id) != null) {
-            JOptionPane.showMessageDialog(this,
-                    "A record with this ID already exists.", "Duplicate ID", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        SavingsDataStore.getInstance().addRecord(new SavingsRecord(id, description, amount, date, category));
+        selectedWallet.addTransaction(new Transaction(type, amount, description, date));
+        
         JOptionPane.showMessageDialog(this,
-                "Record added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                "Transaction added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         clearFields();
     }
 
     private void clearFields() {
-        idField.setText("");
         descriptionField.setText("");
         amountField.setText("");
-        dateField.setText("");
-        categoryField.setText("");
+        dateField.setText("2026-04-07");
+        typeComboBox.setSelectedIndex(0);
     }
 }

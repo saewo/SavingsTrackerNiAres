@@ -22,6 +22,7 @@ public class SavingsTrackerNiAres extends JFrame {
         tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
 
         tabbedPane.addTab("Dashboard", new DashboardPanel());
+        tabbedPane.addTab("Profile", new ProfilePanel());
         tabbedPane.addTab("Add Record", new AddSavingsPanel());
         tabbedPane.addTab("View Records", new ViewSavingsPanel());
         tabbedPane.addTab("Search", new SearchSavingsPanel());
@@ -30,8 +31,9 @@ public class SavingsTrackerNiAres extends JFrame {
         add(tabbedPane, BorderLayout.CENTER);
 
         // Styling
-        tabbedPane.setBackground(new Color(240, 240, 240));
+        tabbedPane.setBackground(new Color(255, 255, 255));
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
     public static void main(String[] args) {

@@ -1,8 +1,12 @@
 package panels;
 
-import model.SavingsDataStore;
+import model.SavingsTrackerSystem;
+import model.User;
+import model.BankAccount;
+import model.Wallet;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
@@ -11,45 +15,91 @@ import java.awt.*;
 public class DashboardPanel extends JPanel {
     private JLabel totalSavingsLabel;
     private JLabel totalRecordsLabel;
+    private JLabel userNameLabel;
 
     public DashboardPanel() {
         setLayout(new BorderLayout());
+        setBackground(new Color(240, 242, 245));
 
-        // Title
-        JLabel title = new JLabel("Savings Dashboard", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 28));
-        title.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
-        add(title, BorderLayout.NORTH);
+        // --- Header ---
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(24, 119, 242));
+        header.setPreferredSize(new Dimension(0, 100));
+        
+        JLabel titleLabel = new JLabel("Savings Dashboard", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        header.add(titleLabel, BorderLayout.CENTER);
+        add(header, BorderLayout.NORTH);
 
-        // Stats Panel
-        JPanel statsPanel = new JPanel(new GridLayout(2, 1, 20, 20));
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        // --- Stats Panel ---
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+        content.setBorder(new EmptyBorder(30, 50, 30, 50));
 
-        totalSavingsLabel = new JLabel("Total Balance: $0.00", SwingConstants.CENTER);
-        totalSavingsLabel.setFont(new Font("Arial", Font.PLAIN, 24));
-        statsPanel.add(totalSavingsLabel);
+        // User Greeting
+        userNameLabel = new JLabel("Welcome back, Ares!", SwingConstants.LEFT);
+        userNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        userNameLabel.setForeground(new Color(50, 50, 50));
+        userNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        content.add(userNameLabel);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
 
+        // Balance Card
+        JPanel balanceCard = createStatCard(new Color(255, 255, 255));
+        totalSavingsLabel = new JLabel("Total Assets: $0.00", SwingConstants.CENTER);
+        totalSavingsLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        totalSavingsLabel.setForeground(new Color(24, 119, 242));
+        balanceCard.add(totalSavingsLabel);
+        content.add(balanceCard);
+        content.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Transactions Card
+        JPanel recordsCard = createStatCard(new Color(255, 255, 255));
         totalRecordsLabel = new JLabel("Total Transactions: 0", SwingConstants.CENTER);
-        totalRecordsLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-        statsPanel.add(totalRecordsLabel);
+        totalRecordsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        recordsCard.add(totalRecordsLabel);
+        content.add(recordsCard);
 
-        add(statsPanel, BorderLayout.CENTER);
+        add(content, BorderLayout.CENTER);
 
-        // Welcome text
-        JLabel welcome = new JLabel("Track your savings and grow your wealth!", SwingConstants.CENTER);
-        welcome.setFont(new Font("Arial", Font.ITALIC, 16));
-        welcome.setBorder(BorderFactory.createEmptyBorder(0, 0, 50, 0));
+        // Footer
+        JLabel welcome = new JLabel("Manage your money across all your bank accounts", SwingConstants.CENTER);
+        welcome.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        welcome.setForeground(new Color(100, 100, 100));
+        welcome.setBorder(new EmptyBorder(0, 0, 30, 0));
         add(welcome, BorderLayout.SOUTH);
 
-        // Initial update
         refreshStats();
     }
 
-    public void refreshStats() {
-        double total = SavingsDataStore.getInstance().getTotalSavings();
-        int count = SavingsDataStore.getInstance().getCount();
+    private JPanel createStatCard(Color bg) {
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(bg);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+            new EmptyBorder(30, 30, 30, 30)
+        ));
+        card.setMaximumSize(new Dimension(600, 150));
+        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return card;
+    }
 
-        totalSavingsLabel.setText(String.format("Total Balance: $%.2f", total));
+    public void refreshStats() {
+        SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
+        double total = system.computeTotalAssets();
+        User user = system.getCurrentUser();
+        
+        int count = 0;
+        for (BankAccount bank : user.getBankAccounts()) {
+            for (Wallet wallet : bank.getWallets()) {
+                count += wallet.getTransactions().size();
+            }
+        }
+
+        userNameLabel.setText("Welcome back, " + user.getName() + "!");
+        totalSavingsLabel.setText(String.format("Total Assets: $%.2f", total));
         totalRecordsLabel.setText("Total Transactions: " + count);
     }
 
