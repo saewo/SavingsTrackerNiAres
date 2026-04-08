@@ -8,6 +8,8 @@ import model.Wallet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Dashboard panel displaying overview statistics of savings.
@@ -17,16 +19,16 @@ public class DashboardPanel extends JPanel {
     private JLabel totalRecordsLabel;
     private JLabel userNameLabel;
 
-    public DashboardPanel() {
+    public DashboardPanel(JTabbedPane tabbedPane) {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 242, 245));
 
         // --- Header ---
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(24, 119, 242));
+        header.setBackground(new Color(255, 182, 193));
         header.setPreferredSize(new Dimension(0, 100));
         
-        JLabel titleLabel = new JLabel("Savings Dashboard", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Your Savings Dashboard", SwingConstants.CENTER);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         header.add(titleLabel, BorderLayout.CENTER);
@@ -61,7 +63,12 @@ public class DashboardPanel extends JPanel {
         totalRecordsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         recordsCard.add(totalRecordsLabel);
         content.add(recordsCard);
-
+        totalRecordsLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                tabbedPane.setSelectedIndex(3); // switch to Tab 2
+            }
+        });
         add(content, BorderLayout.CENTER);
 
         // Footer
