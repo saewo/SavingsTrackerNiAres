@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 /**
- * Panel to search for specific savings records.
+ * Panel to search for specific savings records including Bank details.
  */
 public class SearchSavingsPanel extends JPanel {
     private JTextField searchField;
@@ -20,60 +20,91 @@ public class SearchSavingsPanel extends JPanel {
     public SearchSavingsPanel() {
         setLayout(new BorderLayout());
 
-        // Title
+        // --- Header Section ---
+        JPanel headerPanel = new JPanel(new BorderLayout());
+
         JLabel title = new JLabel("Search Transactions", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 24));
-        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        add(title, BorderLayout.NORTH);
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        headerPanel.add(title, BorderLayout.NORTH);
 
-        // Search Bar
         JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        searchBar.add(new JLabel("Search (Desc/Type):"));
-        searchField = new JTextField(20);
-        searchBar.add(searchField);
+        searchBar.add(new JLabel("Search Bank:"));
+        searchField = new JTextField(25);
+
         JButton searchBtn = new JButton("Search");
         searchBtn.addActionListener(e -> performSearch());
+
+        JButton clearBtn = new JButton("Show All");
+        clearBtn.addActionListener(e -> {
+            searchField.setText("");
+            performSearch();
+        });
+
+        searchBar.add(searchField);
         searchBar.add(searchBtn);
+        searchBar.add(clearBtn);
+        headerPanel.add(searchBar, BorderLayout.SOUTH);
 
-        // Result Table
-        String[] columns = {"Wallet", "Description", "Amount ($)", "Date", "Type"};
-        tableModel = new DefaultTableModel(columns, 0);
+        add(headerPanel, BorderLayout.NORTH);
+
+        // --- Table Section ---
+        // Added "Bank" to the columns array
+        String[] columns = {"Bank", "Wallet", "Description", "Amount ($)", "Date", "Type"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
         resultTable = new JTable(tableModel);
+        resultTable.getTableHeader().setReorderingAllowed(false);
         JScrollPane scrollPane = new JScrollPane(resultTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
         add(scrollPane, BorderLayout.CENTER);
-
-        // Layout fix
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(title, BorderLayout.NORTH);
-        topPanel.add(searchBar, BorderLayout.SOUTH);
-        add(topPanel, BorderLayout.NORTH);
     }
 
     private void performSearch() {
         String query = searchField.getText().trim().toLowerCase();
         tableModel.setRowCount(0);
 
-        if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a search term.", "Input Required", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        boolean found = false;
         SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
+        boolean found = false;
         for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
             for (Wallet wallet : bank.getWallets()) {
                 for (Transaction t : wallet.getTransactions()) {
-                    if (t.getDescription().toLowerCase().contains(query) ||
-                        t.getType().toLowerCase().contains(query)) {
-                        tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+
+                    boolean matchesDesc = t.getDescription().toLowerCase().contains(query);
+                    boolean matchesType = t.getType().toLowerCase().contains(query);
+                    boolean matchesBank = bank.getBankName().toLowerCase().contains(query);
+                    boolean Wallet = wallet.getWalletName().toLowerCase().contains(query);
+
+                    if (query.isEmpty() || matchesDesc || matchesType || matchesBank || Wallet) {
+                        // Manually constructing the row to include bank.getBankName()
+                        tableModel.addRow(new Object[]{
+                                bank.getBankName(),
+                                wallet.getWalletName(),
+                                t.getDescription(),
+                                t.getAmount(),
+                                t.getDate(),
+                                t.getType()
+                        });
                         found = true;
                     }
                 }
             }
         }
+        if (!found && !query.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No matching records found.");
+        }
+    }
 
-        if (!found) {
-            JOptionPane.showMessageDialog(this, "No transactions found matching: " + query, "No Results", JOptionPane.INFORMATION_MESSAGE);
+    @Override
+    public void setVisible(boolean aFlag) {
+        super.setVisible(aFlag);
+        if (aFlag) {
+            performSearch();
         }
     }
 }
