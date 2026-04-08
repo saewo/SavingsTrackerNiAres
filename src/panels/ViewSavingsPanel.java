@@ -7,6 +7,7 @@ import model.Transaction;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
 /**
@@ -26,9 +27,34 @@ public class ViewSavingsPanel extends JPanel {
         add(title, BorderLayout.NORTH);
 
         // Table setup
-        String[] columns = {"Wallet", "Description", "Amount ($)", "Date", "Type"};
+
+        String[] columns = {"Bank","Wallet", "Description", "Amount ($)", "Date", "Type"};
         tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
+
+        table = new JTable(tableModel) {
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+
+                if (!isRowSelected(row)) {
+                    if (row==0){
+                        c.setBackground(Color.BLUE);
+                    }
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.GREEN); // light gray
+                    } else {
+                        c.setBackground(Color.RED);
+                    }
+                }
+
+                return c;
+            }
+        };
+
+        // ENABLE COLUMN SORTING
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
+
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
