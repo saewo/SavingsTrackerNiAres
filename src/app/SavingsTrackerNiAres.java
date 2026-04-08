@@ -22,8 +22,9 @@ public class SavingsTrackerNiAres extends JFrame {
         tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
 
         tabbedPane.addTab("Dashboard", new DashboardPanel());
-        tabbedPane.addTab("Profile", new ProfilePanel());
-        tabbedPane.addTab("Add Record", new AddSavingsPanel());
+        ProfilePanel profilePanel = new ProfilePanel();
+        tabbedPane.addTab("Profile", profilePanel);
+        tabbedPane.addTab("Add Record", new AddSavingsPanel(profilePanel));
         tabbedPane.addTab("View Records", new ViewSavingsPanel());
         tabbedPane.addTab("Search", new SearchSavingsPanel());
         tabbedPane.addTab("Edit / Delete", new EditSavingsPanel());

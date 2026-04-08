@@ -106,7 +106,7 @@ public class ProfilePanel extends JPanel {
         JButton btn = new JButton(text);
         btn.setFocusPainted(false);
         btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
+        btn.setForeground(Color.BLUE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(8, 15, 8, 15));
@@ -123,7 +123,7 @@ public class ProfilePanel extends JPanel {
         JOptionPane.showMessageDialog(this, "Profile updated!");
     }
 
-    private void refreshBanksList() {
+    public void refreshBanksList() {
         banksListPanel.removeAll();
         List<BankAccount> banks = system.getCurrentUser().getBankAccounts();
         for (BankAccount bank : banks) {

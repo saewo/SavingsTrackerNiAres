@@ -7,20 +7,22 @@ import model.Wallet;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
 /**
  * Panel for adding a new savings record.
  */
-public class AddSavingsPanel extends JPanel {
+public class AddSavingsPanel extends JPanel{
     private JTextField descriptionField;
     private JTextField amountField;
     private JTextField dateField;
     private JComboBox<String> typeComboBox;
     private JComboBox<BankAccount> bankComboBox;
     private JComboBox<Wallet> walletComboBox;
-
-    public AddSavingsPanel() {
+    private ProfilePanel profilePanel;
+    public AddSavingsPanel(ProfilePanel profilePanel) {
         setLayout(new BorderLayout());
 
         // Title
@@ -129,7 +131,13 @@ public class AddSavingsPanel extends JPanel {
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
 
         JButton addBtn = new JButton("Add Record");
-        addBtn.addActionListener(e -> addRecord());
+        addBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addRecord();
+                profilePanel.refreshBanksList();
+            }
+        });
         buttonPanel.add(addBtn);
 
         JButton clearBtn = new JButton("Clear");
@@ -194,12 +202,15 @@ public class AddSavingsPanel extends JPanel {
                     "Amount must be a valid number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         selectedWallet.addTransaction(new Transaction(type, amount, description, date));
-        
+        if (profilePanel != null) {
+            profilePanel.refreshBanksList();
+        }
+
         JOptionPane.showMessageDialog(this,
                 "Transaction added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         clearFields();
+
     }
 
     private void clearFields() {

@@ -16,16 +16,34 @@ public class SavingsTrackerSystem {
         // Default user setup
         manageUser(new User("Ares"));
         
-        // Initial setup with a default bank and wallet for testing/startup
-        BankAccount defaultBank = new BankAccount("Default Bank", "logo.png");
-        Wallet defaultWallet = new Wallet("Main Wallet", 0.0);
-        defaultBank.addWallet(defaultWallet);
-        currentUser.addBankAccount(defaultBank);
+       //GCASH
+        BankAccount gcash = new BankAccount("G-Cash", "logo.png");
+        Wallet gcashdefaultWallet = new Wallet("Main Wallet", 0.0);
+        gcash.addWallet(gcashdefaultWallet);
+        currentUser.addBankAccount(gcash);
+        gcashdefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
 
-        // Pre-load some sample data
-        defaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
-        defaultWallet.addTransaction(new Transaction("Income", 2500.0, "Salary Deposit", "2026-04-05"));
-        defaultWallet.addTransaction(new Transaction("Income", 150.0, "Investment Profit", "2026-04-06"));
+        //BDO
+        BankAccount bdo = new BankAccount("BDO", "logo.png");
+        Wallet bdodefaultWallet = new Wallet("Main Wallet", 0.0);
+        bdo.addWallet(bdodefaultWallet);
+        currentUser.addBankAccount(bdo);
+        bdodefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
+
+
+        //BPI
+        BankAccount BPI = new BankAccount("BPI", "logo.png");
+        Wallet bpidefaultWallet = new Wallet("Main Wallet", 0.0);
+        BPI.addWallet(bpidefaultWallet);
+        currentUser.addBankAccount(BPI);
+        bpidefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
+
+
+
+
+
+
+
     }
 
     public static SavingsTrackerSystem getInstance() {
