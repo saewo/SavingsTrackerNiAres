@@ -9,7 +9,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.time.*;
 
 /**
  * Panel for adding a new savings record.
@@ -24,6 +26,10 @@ public class AddSavingsPanel extends JPanel{
     private ProfilePanel profilePanel;
     public AddSavingsPanel(ProfilePanel profilePanel) {
         setLayout(new BorderLayout());
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = now.format(formatter);
 
         // Title
         JLabel title = new JLabel("Add New Transaction", SwingConstants.CENTER);
@@ -121,7 +127,7 @@ public class AddSavingsPanel extends JPanel{
         gbc.gridy = 5;
         gbc.weightx = 1.0;
         dateField = new JTextField(20);
-        dateField.setText("2026-04-07"); // Default to today
+        dateField.setText(formattedDate); // Default to today
         formPanel.add(dateField, gbc);
 
         add(formPanel, BorderLayout.CENTER);
@@ -241,9 +247,13 @@ public class AddSavingsPanel extends JPanel{
     }
 
     private void clearFields() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = now.format(formatter);
+
         descriptionField.setText("");
         amountField.setText("");
-        dateField.setText("2026-04-07");
+        dateField.setText(formattedDate);
         typeComboBox.setSelectedIndex(0);
     }
 }
