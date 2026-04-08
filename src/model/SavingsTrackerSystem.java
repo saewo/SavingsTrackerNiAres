@@ -1,5 +1,7 @@
 package model;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,22 +15,24 @@ public class SavingsTrackerSystem {
     private User currentUser;
 
     private SavingsTrackerSystem() {
-        // Default user setup
         manageUser(new User("Ares"));
-        
-       //GCASH
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = today.format(formatter);
+
+        //GCASH
         BankAccount gcash = new BankAccount("G-Cash", "logo.png");
         Wallet gcashdefaultWallet = new Wallet("Main Wallet", 0.0);
         gcash.addWallet(gcashdefaultWallet);
         currentUser.addBankAccount(gcash);
-        gcashdefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
+        gcashdefaultWallet.addTransaction(new Transaction("Income", 0, "Opening Balance", formattedDate));
 
         //BDO
         BankAccount bdo = new BankAccount("BDO", "logo.png");
         Wallet bdodefaultWallet = new Wallet("Main Wallet", 0.0);
         bdo.addWallet(bdodefaultWallet);
         currentUser.addBankAccount(bdo);
-        bdodefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
+        bdodefaultWallet.addTransaction(new Transaction("Income", 0, "Opening Balance", formattedDate));
 
 
         //BPI
@@ -36,7 +40,7 @@ public class SavingsTrackerSystem {
         Wallet bpidefaultWallet = new Wallet("Main Wallet", 0.0);
         BPI.addWallet(bpidefaultWallet);
         currentUser.addBankAccount(BPI);
-        bpidefaultWallet.addTransaction(new Transaction("Income", 1000.0, "Opening Balance", "2026-04-01"));
+        bpidefaultWallet.addTransaction(new Transaction("Income", 0, "Opening Balance", formattedDate));
 
 
 
