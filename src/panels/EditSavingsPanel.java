@@ -115,18 +115,6 @@ public class EditSavingsPanel extends JPanel {
 
     public void refreshTable() {
         tableModel.setRowCount(0);
-<<<<<<< HEAD
-        rowMapping = new ArrayList<>();
-        SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
-        
-        for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
-            for (Wallet wallet : bank.getWallets()) {
-                for (Transaction t : wallet.getTransactions()) {
-                    tableModel.addRow(t.toTableRow(wallet.getWalletName(), wallet.getWalletName()));
-                    rowMapping.add(new SavingsTrackerSystem.TransactionRecord(bank, wallet, t));
-                }
-            }
-=======
         for (SavingsTrackerSystem.TransactionRecord rec : SavingsTrackerSystem.getInstance().getAllTransactionsFlat()) {
             tableModel.addRow(new Object[]{
                     rec.bank.getBankName(),
@@ -136,7 +124,6 @@ public class EditSavingsPanel extends JPanel {
                     rec.transaction.getDate(),
                     rec.transaction.getType()
             });
->>>>>>> bdc1b8de28a85fb898f2d51432077fd71b2a94ee
         }
     }
 

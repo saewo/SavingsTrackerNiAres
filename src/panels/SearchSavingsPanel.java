@@ -74,11 +74,6 @@ public class SearchSavingsPanel extends JPanel {
         for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
             for (Wallet wallet : bank.getWallets()) {
                 for (Transaction t : wallet.getTransactions()) {
-<<<<<<< HEAD
-                    if (t.getDescription().toLowerCase().contains(query) ||
-                        t.getType().toLowerCase().contains(query)) {
-                        tableModel.addRow(t.toTableRow(wallet.getWalletName(), wallet.getWalletName()));
-=======
 
                     boolean matchesDesc = t.getDescription().toLowerCase().contains(query);
                     boolean matchesType = t.getType().toLowerCase().contains(query);
@@ -95,7 +90,6 @@ public class SearchSavingsPanel extends JPanel {
                                 t.getDate(),
                                 t.getType()
                         });
->>>>>>> bdc1b8de28a85fb898f2d51432077fd71b2a94ee
                         found = true;
                     }
                 }
