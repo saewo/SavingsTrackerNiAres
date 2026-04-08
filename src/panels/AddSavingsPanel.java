@@ -145,6 +145,22 @@ public class AddSavingsPanel extends JPanel{
         buttonPanel.add(clearBtn);
 
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // QoL
+        descriptionField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                amountField.requestFocus();
+            }
+        });
+
+        amountField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                descriptionField.requestFocus();
+                addBtn.doClick();
+            }
+        });
         
         refreshData();
     }
@@ -202,7 +218,18 @@ public class AddSavingsPanel extends JPanel{
                     "Amount must be a valid number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        selectedWallet.addTransaction(new Transaction(type, amount, description, date));
+        Transaction transaction = new Transaction(type, amount, description, date);
+
+        if (type .equals("Expense")) {
+            if (amount > selectedWallet.getBalance()) {
+                JOptionPane.showMessageDialog(this,
+                        "You do not have enough balance for this transaction.", "Error", JOptionPane.INFORMATION_MESSAGE);
+                clearFields();
+                return;
+            }
+        }
+
+        selectedWallet.addTransaction(transaction);
         if (profilePanel != null) {
             profilePanel.refreshBanksList();
         }
