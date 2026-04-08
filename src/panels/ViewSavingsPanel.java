@@ -7,11 +7,9 @@ import model.Transaction;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
-/**
- * Panel to view all savings records in a table.
- */
 public class ViewSavingsPanel extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
@@ -25,12 +23,31 @@ public class ViewSavingsPanel extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
 
-        // Table setup
-        String[] columns = {"Wallet", "Description", "Amount ($)", "Date", "Type"};
+        // Table setup - 6 Columns total
+        String[] columns = {"Bank", "Wallet", "Description", "Amount ($)", "Date", "Type"};
         tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);
+
+        table = new JTable(tableModel) {
+            @Override
+            public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+
+                if (!isRowSelected(row)) {
+                    // FIXED: Use else-if so colors don't overwrite each other
+                    if (row == 0) {
+                        c.setBackground(new Color(173, 216, 230)); // Light Blue
+                    } else if (row % 2 == 0) {
+                        c.setBackground(Color.GREEN);
+                    } else {
+                        c.setBackground(Color.RED);
+                    }
+                }
+                return c;
+            }
+        };
+
+        table.setRowSorter(new TableRowSorter<>(tableModel));
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
         // Refresh button
         JButton refreshBtn = new JButton("Refresh Table");
@@ -39,17 +56,20 @@ public class ViewSavingsPanel extends JPanel {
         buttonPanel.add(refreshBtn);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Initial load
         refreshTable();
     }
 
     public void refreshTable() {
         tableModel.setRowCount(0);
         SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
-        for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
-            for (Wallet wallet : bank.getWallets()) {
-                for (Transaction t : wallet.getTransactions()) {
-                    tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+
+        if (system.getCurrentUser() != null) {
+            for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
+                for (Wallet wallet : bank.getWallets()) {
+                    for (Transaction t : wallet.getTransactions()) {
+                        // FIXED: Passing TWO arguments here
+                        tableModel.addRow(t.toTableRow(bank.getBankName(), wallet.getWalletName()));
+                    }
                 }
             }
         }
