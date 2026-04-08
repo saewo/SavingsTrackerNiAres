@@ -19,7 +19,7 @@ public class DashboardPanel extends JPanel {
     private JLabel totalRecordsLabel;
     private JLabel userNameLabel;
 
-    public DashboardPanel() {
+    public DashboardPanel(JTabbedPane tabbedPane) {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 242, 245));
 
@@ -63,9 +63,13 @@ public class DashboardPanel extends JPanel {
         totalRecordsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         recordsCard.add(totalRecordsLabel);
         content.add(recordsCard);
-
+        totalRecordsLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                tabbedPane.setSelectedIndex(3); // switch to Tab 2
+            }
+        });
         add(content, BorderLayout.CENTER);
-        
 
         // Footer
         JLabel welcome = new JLabel("Manage your money across all your bank accounts", SwingConstants.CENTER);
