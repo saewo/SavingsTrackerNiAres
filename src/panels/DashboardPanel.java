@@ -8,6 +8,8 @@ import model.Wallet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Dashboard panel displaying overview statistics of savings.
@@ -23,11 +25,11 @@ public class DashboardPanel extends JPanel {
 
         // --- Header ---
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(24, 119, 242));
+        header.setBackground(new Color(255, 182, 193));
         header.setPreferredSize(new Dimension(0, 100));
         
-        JLabel titleLabel = new JLabel("Savings Dashboard", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.LIGHT_GRAY);
+        JLabel titleLabel = new JLabel("Your Savings Dashboard", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         header.add(titleLabel, BorderLayout.CENTER);
         add(header, BorderLayout.NORTH);
@@ -63,6 +65,7 @@ public class DashboardPanel extends JPanel {
         content.add(recordsCard);
 
         add(content, BorderLayout.CENTER);
+        
 
         // Footer
         JLabel welcome = new JLabel("Manage your money across all your bank accounts", SwingConstants.CENTER);
