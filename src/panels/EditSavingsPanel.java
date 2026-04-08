@@ -63,7 +63,7 @@ public class EditSavingsPanel extends JPanel {
         for (BankAccount bank : system.getCurrentUser().getBankAccounts()) {
             for (Wallet wallet : bank.getWallets()) {
                 for (Transaction t : wallet.getTransactions()) {
-                    tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+                    tableModel.addRow(t.toTableRow(wallet.getWalletName(), wallet.getWalletName()));
                     rowMapping.add(new SavingsTrackerSystem.TransactionRecord(bank, wallet, t));
                 }
             }

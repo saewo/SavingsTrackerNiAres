@@ -65,7 +65,7 @@ public class SearchSavingsPanel extends JPanel {
                 for (Transaction t : wallet.getTransactions()) {
                     if (t.getDescription().toLowerCase().contains(query) ||
                         t.getType().toLowerCase().contains(query)) {
-                        tableModel.addRow(t.toTableRow(wallet.getWalletName()));
+                        tableModel.addRow(t.toTableRow(wallet.getWalletName(), wallet.getWalletName()));
                         found = true;
                     }
                 }
