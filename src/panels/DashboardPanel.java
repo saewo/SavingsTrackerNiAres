@@ -27,7 +27,7 @@ public class DashboardPanel extends JPanel {
         header.setPreferredSize(new Dimension(0, 100));
         
         JLabel titleLabel = new JLabel("Savings Dashboard", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(Color.LIGHT_GRAY);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         header.add(titleLabel, BorderLayout.CENTER);
         add(header, BorderLayout.NORTH);
