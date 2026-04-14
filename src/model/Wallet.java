@@ -1,44 +1,44 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Person 3: Wallet
  * Handles individual wallets under a bank.
+ * Balance is derived from the sum of transactions.
  */
-public class Wallet {
+public class Wallet implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String walletName;
-    private double balance;
+    private double initialBalance;
     private List<Transaction> transactions;
 
     public Wallet(String walletName, double initialBalance) {
         this.walletName = walletName;
-        this.balance = initialBalance;
+        this.initialBalance = initialBalance;
         this.transactions = new ArrayList<>();
     }
 
     // --- Methods ---
     public void addTransaction(Transaction t) {
         transactions.add(t);
-        // If it's an expense, subtract. If income, add.
-        if (t.getType().equalsIgnoreCase("Expense")) {
-            balance -= t.getAmount();
-        } else {
-            balance += t.getAmount();
-        }
     }
 
     public List<Transaction> getTransactions() {
         return transactions;
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
+    public void setInitialBalance(double initialBalance) {
+        this.initialBalance = initialBalance;
     }
 
     public double getBalance() {
-        return balance;
+        double currentBalance = initialBalance;
+        for (Transaction t : transactions) {
+            currentBalance += t.getAmount();
+        }
+        return currentBalance;
     }
 
     public String getWalletName() {

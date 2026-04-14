@@ -1,181 +1,145 @@
 package panels;
 
-import model.BankAccount;
+import app.SavingsTrackerNiAres;
+import app.UIUtils;
 import model.SavingsTrackerSystem;
 import model.User;
-import model.Wallet;
+import model.BankAccount;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List;
+import java.io.File;
 
 /**
- * Profile panel for managing user profile and bank accounts.
+ * Redesigned Profile panel for user info and bank summary.
+ * Allows editing the user's name. Shows Bank Logos.
  */
 public class ProfilePanel extends JPanel {
-    private JTextField nameField;
-    private JPanel banksListPanel;
-    private SavingsTrackerSystem system;
+    private JLabel nameLabel;
+    private JPanel banksPanel;
+    private SavingsTrackerNiAres mainFrame;
 
-    public ProfilePanel() {
-        this.system = SavingsTrackerSystem.getInstance();
+    public ProfilePanel(SavingsTrackerNiAres mainFrame) {
+        this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 242, 245));
+        setBackground(UIUtils.COLOR_BACKGROUND);
+        setBorder(UIUtils.createPadding(30, 30, 30, 30));
 
-        // --- Header ---
+        // Container Card
+        JPanel card = UIUtils.createRoundedPanel(20, Color.WHITE);
+        card.setLayout(new BorderLayout());
+        card.setBorder(UIUtils.createPadding(30, 40, 30, 40));
+        add(card, BorderLayout.CENTER);
+
+        // Header
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(24, 119, 242));
-        header.setPreferredSize(new Dimension(0, 80));
+        header.setOpaque(false);
         
-        JLabel titleLabel = new JLabel("User Profile & Accounts", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        header.add(titleLabel, BorderLayout.CENTER);
-        add(header, BorderLayout.NORTH);
+        JLabel title = new JLabel("User Profile");
+        title.setFont(UIUtils.FONT_TITLE);
+        title.setForeground(UIUtils.COLOR_TEXT_DARK);
+        header.add(title, BorderLayout.NORTH);
 
-        // --- Main Content ---
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        JPanel nameEditPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 20));
+        nameEditPanel.setOpaque(false);
+        
+        nameLabel = new JLabel("Name: ");
+        nameLabel.setFont(UIUtils.FONT_BOLD);
+        nameLabel.setForeground(UIUtils.COLOR_TEXT_DARK);
+        nameEditPanel.add(nameLabel);
+        
+        JButton editNameBtn = UIUtils.createStyledButton("Edit Name", UIUtils.COLOR_BUTTON_TEAL, Color.WHITE);
+        editNameBtn.setPreferredSize(new Dimension(120, 30));
+        editNameBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        editNameBtn.addActionListener(e -> editName());
+        nameEditPanel.add(Box.createRigidArea(new Dimension(20, 0)));
+        nameEditPanel.add(editNameBtn);
+        
+        header.add(nameEditPanel, BorderLayout.CENTER);
+        card.add(header, BorderLayout.NORTH);
+
+        // Content
+        JPanel content = new JPanel(new BorderLayout());
         content.setOpaque(false);
-        content.setBorder(new EmptyBorder(20, 40, 20, 40));
+        
+        JLabel subtitle = new JLabel("Your Bank Accounts");
+        subtitle.setFont(UIUtils.FONT_BOLD);
+        subtitle.setForeground(UIUtils.COLOR_TEXT_DARK);
+        subtitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        content.add(subtitle, BorderLayout.NORTH);
 
-        // 1. User Name Section
-        content.add(createSectionTitle("Edit Profile"));
+        banksPanel = new JPanel();
+        banksPanel.setLayout(new BoxLayout(banksPanel, BoxLayout.Y_AXIS));
+        banksPanel.setOpaque(false);
         
-        JPanel profileCard = createCard();
-        profileCard.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 15));
-        
-        profileCard.add(new JLabel("Display Name:"));
-        nameField = new JTextField(system.getCurrentUser().getName(), 15);
-        profileCard.add(nameField);
-        
-        JButton updateNameBtn = createStyledButton("Update Name", new Color(24, 119, 242));
-        updateNameBtn.addActionListener(e -> updateUserName());
-        profileCard.add(updateNameBtn);
-        
-        content.add(profileCard);
-        content.add(Box.createRigidArea(new Dimension(0, 30)));
-
-        // 2. Bank Accounts Section
-        JPanel bankHeader = new JPanel(new BorderLayout());
-        bankHeader.setOpaque(false);
-        bankHeader.add(createSectionTitle("Manage Bank Accounts"), BorderLayout.WEST);
-        
-        JButton addBankBtn = createStyledButton("+ Add Bank", new Color(66, 183, 42));
-        addBankBtn.addActionListener(e -> showAddBankDialog());
-        bankHeader.add(addBankBtn, BorderLayout.EAST);
-        
-        content.add(bankHeader);
-        content.add(Box.createRigidArea(new Dimension(0, 10)));
-
-        banksListPanel = new JPanel();
-        banksListPanel.setLayout(new BoxLayout(banksListPanel, BoxLayout.Y_AXIS));
-        banksListPanel.setOpaque(false);
-        refreshBanksList();
-        
-        JScrollPane scrollPane = new JScrollPane(banksListPanel);
+        JScrollPane scrollPane = new JScrollPane(banksPanel);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
-        content.add(scrollPane);
+        content.add(scrollPane, BorderLayout.CENTER);
+        
+        card.add(content, BorderLayout.CENTER);
 
-        add(content, BorderLayout.CENTER);
+        refreshBanksList();
     }
 
-    private JLabel createSectionTitle(String title) {
-        JLabel label = new JLabel(title);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        label.setForeground(new Color(50, 50, 50));
-        label.setBorder(new EmptyBorder(0, 0, 10, 0));
-        return label;
-    }
-
-    private JPanel createCard() {
-        JPanel card = new JPanel();
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-            new EmptyBorder(10, 10, 10, 10)
-        ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-        return card;
-    }
-
-    private JButton createStyledButton(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setFocusPainted(false);
-        btn.setBackground(bg);
-        btn.setForeground(Color.BLUE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(8, 15, 8, 15));
-        return btn;
-    }
-
-    private void updateUserName() {
-        String newName = nameField.getText().trim();
-        if (newName.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Name cannot be empty.");
-            return;
+    private void editName() {
+        User user = SavingsTrackerSystem.getInstance().getCurrentUser();
+        String newName = JOptionPane.showInputDialog(this, "Enter new name:", user.getName());
+        if (newName != null && !newName.trim().isEmpty()) {
+            user.setName(newName.trim());
+            SavingsTrackerSystem.getInstance().saveData();
+            refreshBanksList();
+            if (mainFrame != null) {
+                mainFrame.refreshHeader();
+            }
         }
-        system.getCurrentUser().setName(newName);
-        JOptionPane.showMessageDialog(this, "Profile updated!");
     }
 
     public void refreshBanksList() {
-        banksListPanel.removeAll();
-        List<BankAccount> banks = system.getCurrentUser().getBankAccounts();
-        for (BankAccount bank : banks) {
-            banksListPanel.add(createBankItem(bank));
-            banksListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        banksPanel.removeAll();
+        SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
+        User user = system.getCurrentUser();
+        nameLabel.setText("Name: " + user.getName());
+
+        for (BankAccount bank : user.getBankAccounts()) {
+            JPanel bankCard = UIUtils.createRoundedPanel(15, new Color(245, 247, 248));
+            bankCard.setLayout(new BorderLayout(15, 0));
+            bankCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+            bankCard.setBorder(UIUtils.createPadding(15, 20, 15, 20));
+
+            // Bank Info (Logo + Name)
+            JPanel bankInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+            bankInfo.setOpaque(false);
+
+            File logoFile = new File(bank.getLogoPath());
+            if (logoFile.exists()) {
+                ImageIcon icon = new ImageIcon(new ImageIcon(bank.getLogoPath()).getImage().getScaledInstance(35, 35, Image.SCALE_SMOOTH));
+                bankInfo.add(new JLabel(icon));
+            }
+
+            JLabel name = new JLabel(bank.getBankName());
+            name.setFont(UIUtils.FONT_BOLD);
+            bankInfo.add(name);
+            
+            bankCard.add(bankInfo, BorderLayout.WEST);
+
+            JLabel balance = new JLabel(String.format("Php%.2f", bank.getTotalBalance()));
+            balance.setFont(UIUtils.FONT_BOLD);
+            balance.setForeground(UIUtils.COLOR_BUTTON_TEAL);
+            bankCard.add(balance, BorderLayout.EAST);
+
+            banksPanel.add(bankCard);
+            banksPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         }
-        banksListPanel.revalidate();
-        banksListPanel.repaint();
+        
+        banksPanel.revalidate();
+        banksPanel.repaint();
     }
 
-    private JPanel createBankItem(BankAccount bank) {
-        JPanel item = new JPanel(new BorderLayout());
-        item.setBackground(Color.WHITE);
-        item.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230)),
-            new EmptyBorder(15, 20, 15, 20)
-        ));
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-
-        JLabel nameLabel = new JLabel(bank.getBankName());
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        item.add(nameLabel, BorderLayout.WEST);
-
-        double balance = bank.getTotalBalance();
-        JLabel balanceLabel = new JLabel(String.format("Total: $%.2f", balance));
-        balanceLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        balanceLabel.setForeground(new Color(100, 100, 100));
-        item.add(balanceLabel, BorderLayout.CENTER);
-
-        JButton addWalletBtn = createStyledButton("+ Wallet", new Color(100, 100, 100));
-        addWalletBtn.addActionListener(e -> showAddWalletDialog(bank));
-        item.add(addWalletBtn, BorderLayout.EAST);
-
-        return item;
-    }
-
-    private void showAddBankDialog() {
-        String name = JOptionPane.showInputDialog(this, "Enter Bank Name:");
-        if (name != null && !name.trim().isEmpty()) {
-            BankAccount newBank = new BankAccount(name.trim(), "default_logo.png");
-            // Automatically add a default wallet to new bank
-            newBank.addWallet(new Wallet("Main", 0.0));
-            system.getCurrentUser().addBankAccount(newBank);
-            refreshBanksList();
-        }
-    }
-
-    private void showAddWalletDialog(BankAccount bank) {
-        String name = JOptionPane.showInputDialog(this, "Enter Wallet Name for " + bank.getBankName() + ":");
-        if (name != null && !name.trim().isEmpty()) {
-            bank.addWallet(new Wallet(name.trim(), 0.0));
-            refreshBanksList();
-        }
+    @Override
+    public void setVisible(boolean aFlag) {
+        super.setVisible(aFlag);
+        if (aFlag) refreshBanksList();
     }
 }
