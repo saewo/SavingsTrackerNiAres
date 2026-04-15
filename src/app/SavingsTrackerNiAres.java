@@ -189,7 +189,7 @@
 
         public void refreshHeader() {
             User user = SavingsTrackerSystem.getInstance().getCurrentUser();
-            welcomeHeaderLabel.setText("Welcome back, " + user.getName());
+            welcomeHeaderLabel.setText("Welcome back " + user.getName());
             for (Component c : mainContent.getComponents()) {
                 if (c.isVisible()) {
                     c.setVisible(true);
