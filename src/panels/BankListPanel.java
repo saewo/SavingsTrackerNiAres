@@ -148,7 +148,34 @@ public class BankListPanel extends JPanel {
             JLabel bl = new JLabel(String.format("$%.2f", w.getBalance()));
             bl.setForeground(UIUtils.COLOR_BUTTON_TEAL);
             bl.setFont(UIUtils.FONT_BOLD);
-            wp.add(bl, BorderLayout.EAST);
+
+            JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+            rightPanel.setOpaque(false);
+
+            rightPanel.add(bl);
+
+            JButton testBtn = UIUtils.createStyledButton("Delete", Color.RED, Color.WHITE);
+            testBtn.addActionListener(e -> {
+                int confirm = JOptionPane.showConfirmDialog(
+                        walletFrame,
+                        "Delete wallet '" + w.getWalletName() + "'?",
+                        "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    bank.getWallets().remove(w);
+                    SavingsTrackerSystem.getInstance().saveData();
+                    refreshList();
+
+                    walletFrame.dispose();
+                    showWallets(bank);
+                }
+            });
+
+            rightPanel.add(testBtn);
+
+            wp.add(rightPanel, BorderLayout.EAST);
             
             panel.add(wp);
             panel.add(Box.createRigidArea(new Dimension(0, 10)));
