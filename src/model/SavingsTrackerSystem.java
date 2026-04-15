@@ -8,7 +8,7 @@ import java.io.*;
 
 /**
  * SavingsTrackerSystem / DatabaseManager
- * Handles overall system logic and data persistence (Nigga Database).
+ * Handles overall system logic and data persistence (Database).
  */
 public class SavingsTrackerSystem {
 
