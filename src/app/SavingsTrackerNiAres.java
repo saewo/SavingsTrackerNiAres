@@ -26,7 +26,7 @@ public class SavingsTrackerNiAres extends JFrame {
     public SavingsTrackerNiAres() {
         try {
             // For absolute paths on your hard drive, don't use getResource
-            String path = "C:/SavingsTrackerNiAres/assets/logo.png";
+            String path = "/SavingsTrackerNiAres/assets/logo.png";
             ImageIcon img = new ImageIcon(path);
 
             // Check if the image actually loaded
