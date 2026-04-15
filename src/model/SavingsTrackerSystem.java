@@ -66,6 +66,18 @@ public class SavingsTrackerSystem {
         return total;
     }
 
+    public String getFormattedTotalAssets() {
+        double total = computeTotalAssets();
+        if (total >= 1_000_000_000) {
+            return String.format("%.2fT", total / 1_000_000_000.0).replace(".00", "");
+        }else if (total >= 1_000_000) {
+            return String.format("%.2fM", total / 1_000_000.0).replace(".00", "");
+        } else if (total >= 1_000) {
+            return String.format("%.2fk", total / 1_000.0).replace(".00", "");
+        }
+        return String.format("%.2f", total);
+    }
+
     public void manageUser(User user) {
         this.currentUser = user;
     }

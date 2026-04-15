@@ -223,11 +223,10 @@ public class DashboardPanel extends JPanel {
     public void refreshStats() {
         SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
         User user = system.getCurrentUser();
-        double total = system.computeTotalAssets();
 
         userNameLabel.setText(user.getName());
-        totalBalanceLabel.setText(String.format("%.2f", total));
 
+        totalBalanceLabel.setText(system.getFormattedTotalAssets());
         tableModel.setRowCount(0);
         java.util.List<SavingsTrackerSystem.TransactionRecord> all = system.getAllTransactionsFlat();
         int start = Math.max(0, all.size() - 10);
