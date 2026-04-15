@@ -24,6 +24,21 @@ public class SavingsTrackerNiAres extends JFrame {
     private Map<String, String> iconMap;
 
     public SavingsTrackerNiAres() {
+        try {
+            // For absolute paths on your hard drive, don't use getResource
+            String path = "C:/SavingsTrackerNiAres/assets/logo.png";
+            ImageIcon img = new ImageIcon(path);
+
+            // Check if the image actually loaded
+            if (img.getImageLoadStatus() == java.awt.MediaTracker.COMPLETE) {
+                this.setIconImage(img.getImage());
+            } else {
+                System.err.println("Logo file not found at: " + path);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         setTitle("Savings Tracker Ni Ares");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1250, 850);
