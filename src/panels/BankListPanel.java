@@ -138,21 +138,6 @@ public class BankListPanel extends JPanel {
         return item;
     }
 
-    private void editBankLogo(BankAccount bank) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Select New Bank Logo");
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "png", "jpg", "jpeg"));
-
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            bank.setLogoPath(selectedFile.getAbsolutePath());
-
-            // Save to database and refresh UI
-            SavingsTrackerSystem.getInstance().saveData();
-            refreshList();
-        }
-    }
 
     private void deleteBank(BankAccount bank) {
         int confirm = JOptionPane.showConfirmDialog(
@@ -166,6 +151,21 @@ public class BankListPanel extends JPanel {
         if (confirm == JOptionPane.YES_OPTION) {
             SavingsTrackerSystem.getInstance().getCurrentUser().getBankAccounts().remove(bank);
             SavingsTrackerSystem.getInstance().saveData();
+            refreshList();
+        }
+    }
+    private void editBankLogo(BankAccount bank) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select New Bank Logo");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "png", "jpg", "jpeg"));
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            bank.setLogoPath(selectedFile.getAbsolutePath());
+
+            // Save to database and refresh UI
+//            SavingsTrackerSystem.getInstance().saveData();
             refreshList();
         }
     }
