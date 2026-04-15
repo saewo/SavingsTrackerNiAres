@@ -122,7 +122,14 @@ public class ViewSavingsPanel extends JPanel {
     public void refreshTable() {
         tableModel.setRowCount(0);
         SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
-        for (SavingsTrackerSystem.TransactionRecord rec : system.getAllTransactionsFlat()) {
+        java.util.List<SavingsTrackerSystem.TransactionRecord> transactions = system.getAllTransactionsFlat();
+        java.util.Collections.sort(transactions, new java.util.Comparator<SavingsTrackerSystem.TransactionRecord>() {
+            @Override
+            public int compare(SavingsTrackerSystem.TransactionRecord r1, SavingsTrackerSystem.TransactionRecord r2) {
+                return r2.transaction.getDate().compareTo(r1.transaction.getDate());
+            }
+        });
+        for (SavingsTrackerSystem.TransactionRecord rec : transactions) {
             ImageIcon icon = null;
             try {
                 File imgFile = new File(rec.bank.getLogoPath());
