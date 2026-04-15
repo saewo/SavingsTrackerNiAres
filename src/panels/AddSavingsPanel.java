@@ -136,7 +136,13 @@ public class AddSavingsPanel extends JPanel {
         buttonPanel.add(addBtn);
 
         card.add(buttonPanel, BorderLayout.SOUTH);
-        
+
+        // Qol Features
+        descriptionField.addActionListener(e -> amountField.requestFocus());
+        amountField.addActionListener(e -> {
+            addBtn.doClick();
+            descriptionField.requestFocus();
+        });
         refreshData();
     }
 
