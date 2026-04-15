@@ -29,7 +29,7 @@ public class BankListPanel extends JPanel {
         // Header
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        
+
         JLabel title = new JLabel("Bank Accounts");
         title.setFont(UIUtils.FONT_TITLE);
         header.add(title, BorderLayout.WEST);
@@ -37,14 +37,14 @@ public class BankListPanel extends JPanel {
         JButton addBankBtn = UIUtils.createStyledButton("Add New Bank", UIUtils.COLOR_BUTTON_TEAL, Color.WHITE);
         addBankBtn.addActionListener(e -> addNewBank());
         header.add(addBankBtn, BorderLayout.EAST);
-        
+
         card.add(header, BorderLayout.NORTH);
 
         // List
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setOpaque(false);
-        
+
         JScrollPane scrollPane = new JScrollPane(listPanel);
         scrollPane.setBorder(null);
         scrollPane.setOpaque(false);
@@ -101,18 +101,40 @@ public class BankListPanel extends JPanel {
         actions.setOpaque(false);
 
         JButton addWalletBtn = UIUtils.createStyledButton("Add Wallet", UIUtils.COLOR_BUTTON_TEAL, Color.WHITE);
-        addWalletBtn.setPreferredSize(new Dimension(120, 35));
+        addWalletBtn.setPreferredSize(new Dimension(110, 35));
         addWalletBtn.addActionListener(e -> addNewWallet(bank));
-        
-        JButton viewWalletsBtn = UIUtils.createStyledButton("View Wallets", UIUtils.COLOR_SIDEBAR, Color.WHITE);
-        viewWalletsBtn.setPreferredSize(new Dimension(120, 35));
+
+        JButton viewWalletsBtn = UIUtils.createStyledButton("View", UIUtils.COLOR_SIDEBAR, Color.WHITE);
+        viewWalletsBtn.setPreferredSize(new Dimension(80, 35));
         viewWalletsBtn.addActionListener(e -> showWallets(bank));
-        
+
+        // DELETE BANK BUTTON
+        JButton deleteBankBtn = UIUtils.createStyledButton("Delete", new Color(220, 53, 69), Color.WHITE);
+        deleteBankBtn.setPreferredSize(new Dimension(80, 35));
+        deleteBankBtn.addActionListener(e -> deleteBank(bank));
+
         actions.add(addWalletBtn);
         actions.add(viewWalletsBtn);
+        actions.add(deleteBankBtn);
         item.add(actions, BorderLayout.EAST);
 
         return item;
+    }
+
+    private void deleteBank(BankAccount bank) {
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to delete '" + bank.getBankName() + "'?\nThis will remove all associated wallets.",
+                "Confirm Delete Bank",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            SavingsTrackerSystem.getInstance().getCurrentUser().getBankAccounts().remove(bank);
+            SavingsTrackerSystem.getInstance().saveData();
+            refreshList();
+        }
     }
 
     private void addNewWallet(BankAccount bank) {
@@ -129,7 +151,7 @@ public class BankListPanel extends JPanel {
         JFrame walletFrame = new JFrame("Wallets - " + bank.getBankName());
         walletFrame.setSize(400, 500);
         walletFrame.setLocationRelativeTo(this);
-        
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(UIUtils.createPadding(20, 20, 20, 20));
@@ -140,12 +162,12 @@ public class BankListPanel extends JPanel {
             wp.setBackground(new Color(240, 240, 240));
             wp.setBorder(UIUtils.createPadding(10, 15, 10, 15));
             wp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-            
+
             JLabel wl = new JLabel(w.getWalletName());
             wl.setFont(UIUtils.FONT_BOLD);
             wp.add(wl, BorderLayout.WEST);
-            
-            JLabel bl = new JLabel(String.format("$%.2f", w.getBalance()));
+
+            JLabel bl = new JLabel(String.format("Php%.2f", w.getBalance()));
             bl.setForeground(UIUtils.COLOR_BUTTON_TEAL);
             bl.setFont(UIUtils.FONT_BOLD);
 
@@ -154,8 +176,8 @@ public class BankListPanel extends JPanel {
 
             rightPanel.add(bl);
 
-            JButton testBtn = UIUtils.createStyledButton("Delete", Color.RED, Color.WHITE);
-            testBtn.addActionListener(e -> {
+            JButton deleteWalletBtn = UIUtils.createStyledButton("Delete", Color.RED, Color.WHITE);
+            deleteWalletBtn.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(
                         walletFrame,
                         "Delete wallet '" + w.getWalletName() + "'?",
@@ -173,10 +195,9 @@ public class BankListPanel extends JPanel {
                 }
             });
 
-            rightPanel.add(testBtn);
-
+            rightPanel.add(deleteWalletBtn);
             wp.add(rightPanel, BorderLayout.EAST);
-            
+
             panel.add(wp);
             panel.add(Box.createRigidArea(new Dimension(0, 10)));
         }
@@ -189,8 +210,8 @@ public class BankListPanel extends JPanel {
         JTextField nameField = new JTextField();
         JTextField logoField = new JTextField("assets/default.png");
         Object[] message = {
-            "Bank Name:", nameField,
-            "Logo Path (e.g. assets/gcash.png):", logoField
+                "Bank Name:", nameField,
+                "Logo Path (e.g. assets/gcash.png):", logoField
         };
 
         int option = JOptionPane.showConfirmDialog(null, message, "Add New Bank", JOptionPane.OK_CANCEL_OPTION);
