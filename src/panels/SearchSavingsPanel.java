@@ -60,6 +60,8 @@ public class SearchSavingsPanel extends JPanel {
         searchBtn.addActionListener(e -> performSearch());
         searchBarPanel.add(searchBtn, BorderLayout.EAST);
 
+        searchField.addActionListener(e -> searchBtn.doClick());
+
         header.add(searchBarPanel, BorderLayout.CENTER);
         card.add(header, BorderLayout.NORTH);
 
