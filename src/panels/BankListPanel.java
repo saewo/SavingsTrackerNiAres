@@ -6,11 +6,16 @@ import model.BankAccount;
 import model.Wallet;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 
 /**
  * Panel to view all Banks and their Wallets.
+ * Features double-click on logos to edit them, direct balance editing for wallets,
+ * and strict case-insensitive duplicate bank prevention.
  */
 public class BankListPanel extends JPanel {
     private JPanel listPanel;
@@ -70,8 +75,20 @@ public class BankListPanel extends JPanel {
         item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
         item.setBorder(UIUtils.createPadding(15, 20, 15, 20));
 
-        // Logo
+        // Logo with Double-Click Listener
         JLabel logoLabel = new JLabel();
+        logoLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoLabel.setToolTipText("Double-click to change logo");
+
+        logoLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editBankLogo(bank);
+                }
+            }
+        });
+
         try {
             File f = new File(bank.getLogoPath());
             if (f.exists()) {
@@ -121,6 +138,22 @@ public class BankListPanel extends JPanel {
         return item;
     }
 
+    private void editBankLogo(BankAccount bank) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select New Bank Logo");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "png", "jpg", "jpeg"));
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            bank.setLogoPath(selectedFile.getAbsolutePath());
+
+            // Save to database and refresh UI
+            SavingsTrackerSystem.getInstance().saveData();
+            refreshList();
+        }
+    }
+
     private void deleteBank(BankAccount bank) {
         int confirm = JOptionPane.showConfirmDialog(
                 this,
@@ -149,7 +182,7 @@ public class BankListPanel extends JPanel {
 
     private void showWallets(BankAccount bank) {
         JFrame walletFrame = new JFrame("Wallets - " + bank.getBankName());
-        walletFrame.setSize(400, 500);
+        walletFrame.setSize(500, 500); // Made it slightly wider to fit the new button
         walletFrame.setLocationRelativeTo(this);
 
         JPanel panel = new JPanel();
@@ -176,6 +209,26 @@ public class BankListPanel extends JPanel {
 
             rightPanel.add(bl);
 
+            // NEW EDIT AMOUNT BUTTON
+            JButton editAmountBtn = UIUtils.createStyledButton("Edit", new Color(108, 117, 125), Color.WHITE);
+            editAmountBtn.addActionListener(e -> {
+                String newBalanceStr = JOptionPane.showInputDialog(walletFrame, "Enter new balance for " + w.getWalletName() + ":", w.getBalance());
+                if (newBalanceStr != null && !newBalanceStr.trim().isEmpty()) {
+                    try {
+                        double newBalance = Double.parseDouble(newBalanceStr.trim());
+                        w.setBalance(newBalance);
+                        SavingsTrackerSystem.getInstance().saveData();
+                        refreshList();
+
+                        // Close and reopen the frame to refresh it instantly
+                        walletFrame.dispose();
+                        showWallets(bank);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(walletFrame, "Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+
             JButton deleteWalletBtn = UIUtils.createStyledButton("Delete", Color.RED, Color.WHITE);
             deleteWalletBtn.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(
@@ -195,6 +248,7 @@ public class BankListPanel extends JPanel {
                 }
             });
 
+            rightPanel.add(editAmountBtn);
             rightPanel.add(deleteWalletBtn);
             wp.add(rightPanel, BorderLayout.EAST);
 
@@ -208,23 +262,65 @@ public class BankListPanel extends JPanel {
 
     private void addNewBank() {
         JTextField nameField = new JTextField();
-        JTextField logoField = new JTextField("assets/default.png");
+
+        // Setup UI for the file browser
+        JButton browseBtn = new JButton("Browse Image...");
+        JLabel filePathLabel = new JLabel("assets/default.png"); // Default path
+        filePathLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        filePathLabel.setForeground(Color.GRAY);
+
+        browseBtn.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Select Bank Logo");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "png", "jpg", "jpeg"));
+
+            int result = fileChooser.showOpenDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                filePathLabel.setText(selectedFile.getAbsolutePath());
+            }
+        });
+
         Object[] message = {
                 "Bank Name:", nameField,
-                "Logo Path (e.g. assets/gcash.png):", logoField
+                "Select Bank Logo:", browseBtn,
+                filePathLabel
         };
 
         int option = JOptionPane.showConfirmDialog(null, message, "Add New Bank", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             String name = nameField.getText().trim();
-            String logo = logoField.getText().trim();
-            if (!name.isEmpty()) {
-                BankAccount newBank = new BankAccount(name, logo);
-                newBank.addWallet(new Wallet("Main Wallet", 0.0));
-                SavingsTrackerSystem.getInstance().getCurrentUser().addBankAccount(newBank);
-                SavingsTrackerSystem.getInstance().saveData();
-                refreshList();
+            String logo = filePathLabel.getText().trim();
+
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Bank name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+
+            // --- STRICT CASE-INSENSITIVE VALIDATION LOGIC ---
+            boolean isDuplicate = false;
+            for (BankAccount existingBank : SavingsTrackerSystem.getInstance().getCurrentUser().getBankAccounts()) {
+                // equalsIgnoreCase treats "bdo", "BDO", and "Bdo" as identical
+                if (existingBank.getBankName().equalsIgnoreCase(name)) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+
+            if (isDuplicate) {
+                JOptionPane.showMessageDialog(null,
+                        "A bank with the name '" + name + "' already exists!",
+                        "Duplicate Bank",
+                        JOptionPane.WARNING_MESSAGE);
+                return; // Stops the code here, preventing the bank from being added
+            }
+            // --- END OF VALIDATION ---
+
+            BankAccount newBank = new BankAccount(name, logo);
+            newBank.addWallet(new Wallet("Main Wallet", 0.0));
+            SavingsTrackerSystem.getInstance().getCurrentUser().addBankAccount(newBank);
+            SavingsTrackerSystem.getInstance().saveData();
+            refreshList();
         }
     }
 
