@@ -1,13 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Person 1: User
  * Handles the main user information.
  */
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String name;
     private List<BankAccount> bankAccounts;
 

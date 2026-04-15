@@ -1,13 +1,14 @@
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Person 2: BankAccount
  * Handles bank details (name, logo).
  */
-public class BankAccount {
+public class BankAccount implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String bankName;
     private String logoPath;
     private List<Wallet> wallets;
