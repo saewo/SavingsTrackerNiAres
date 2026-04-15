@@ -16,6 +16,7 @@ import java.io.File;
 /**
  * Redesigned Panel for searching savings records.
  * Shows Bank Logo + Name. Amount is last.
+ * Sorted to show newest transactions first.
  */
 public class SearchSavingsPanel extends JPanel {
     private JTextField searchField;
@@ -51,8 +52,8 @@ public class SearchSavingsPanel extends JPanel {
         searchField.setFont(UIUtils.FONT_REGULAR);
         searchField.setPreferredSize(new Dimension(0, 45));
         searchField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(0, 15, 0, 15)
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(0, 15, 0, 15)
         ));
         searchBarPanel.add(searchField, BorderLayout.CENTER);
 
@@ -65,8 +66,8 @@ public class SearchSavingsPanel extends JPanel {
         header.add(searchBarPanel, BorderLayout.CENTER);
         card.add(header, BorderLayout.NORTH);
 
-        // Table setup
-        String[] columns = {"Bank", "Wallet", "Description", "Date", "Amount ($)"};
+        // Table setup (Updated Column Header to "Date & Time")
+        String[] columns = {"Bank", "Wallet", "Description", "Date & Time", "Amount ($)"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -91,7 +92,7 @@ public class SearchSavingsPanel extends JPanel {
                 JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
                 p.setOpaque(true);
                 p.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
-                
+
                 if (value instanceof Object[]) {
                     Object[] data = (Object[]) value;
                     if (data[0] instanceof ImageIcon) p.add(new JLabel((ImageIcon) data[0]));
@@ -141,11 +142,20 @@ public class SearchSavingsPanel extends JPanel {
         String query = searchField.getText().toLowerCase().trim();
         SavingsTrackerSystem system = SavingsTrackerSystem.getInstance();
 
-        for (SavingsTrackerSystem.TransactionRecord rec : system.getAllTransactionsFlat()) {
-            if (query.isEmpty() || rec.transaction.getDescription().toLowerCase().contains(query) || 
-                rec.wallet.getWalletName().toLowerCase().contains(query) ||
-                rec.bank.getBankName().toLowerCase().contains(query)) {
-                
+        // Grab all transactions and sort them by Date (Newest First)
+        java.util.List<SavingsTrackerSystem.TransactionRecord> sortedTransactions = system.getAllTransactionsFlat();
+        java.util.Collections.sort(sortedTransactions, new java.util.Comparator<SavingsTrackerSystem.TransactionRecord>() {
+            @Override
+            public int compare(SavingsTrackerSystem.TransactionRecord r1, SavingsTrackerSystem.TransactionRecord r2) {
+                return r2.transaction.getDate().compareTo(r1.transaction.getDate());
+            }
+        });
+
+        for (SavingsTrackerSystem.TransactionRecord rec : sortedTransactions) {
+            if (query.isEmpty() || rec.transaction.getDescription().toLowerCase().contains(query) ||
+                    rec.wallet.getWalletName().toLowerCase().contains(query) ||
+                    rec.bank.getBankName().toLowerCase().contains(query)) {
+
                 ImageIcon icon = null;
                 try {
                     File imgFile = new File(rec.bank.getLogoPath());
@@ -160,7 +170,7 @@ public class SearchSavingsPanel extends JPanel {
                         new Object[]{icon, rec.bank.getBankName()},
                         rec.wallet.getWalletName(),
                         rec.transaction.getDescription(),
-                        rec.transaction.getDate(),
+                        rec.transaction.getDate(), // This will now display the combined Date and Time
                         rec.transaction.getAmount()
                 });
             }

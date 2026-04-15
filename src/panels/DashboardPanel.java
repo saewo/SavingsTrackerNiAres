@@ -18,6 +18,7 @@ import java.io.File;
 /**
  * Redesigned Dashboard panel matching the sc.png design.
  * Shows bank logos + bank names and color-coded amounts. Amount is last.
+ * Sorted to show the 10 most recent transactions first.
  */
 public class DashboardPanel extends JPanel {
     private JLabel totalBalanceLabel;
@@ -140,8 +141,8 @@ public class DashboardPanel extends JPanel {
         header.add(btnPanel, BorderLayout.EAST);
         rightPanel.add(header, BorderLayout.NORTH);
 
-        // Table
-        String[] columns = {"Bank", "Wallet", "Date", "Amount"};
+        // Table (Updated Column Header to "Date & Time")
+        String[] columns = {"Bank", "Wallet", "Date & Time", "Amount"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -211,7 +212,7 @@ public class DashboardPanel extends JPanel {
         viewAllBtn.setContentAreaFilled(false);
         viewAllBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         viewAllBtn.addActionListener(e -> mainFrame.switchCard("Transaction"));
-        
+
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footer.setOpaque(false);
         footer.add(viewAllBtn);
@@ -225,12 +226,21 @@ public class DashboardPanel extends JPanel {
         User user = system.getCurrentUser();
 
         userNameLabel.setText(user.getName());
-
         totalBalanceLabel.setText(system.getFormattedTotalAssets());
         tableModel.setRowCount(0);
+
+        // Fetch and sort transactions (Newest First)
         java.util.List<SavingsTrackerSystem.TransactionRecord> all = system.getAllTransactionsFlat();
-        int start = Math.max(0, all.size() - 10);
-        for (int i = all.size() - 1; i >= start; i--) {
+        java.util.Collections.sort(all, new java.util.Comparator<SavingsTrackerSystem.TransactionRecord>() {
+            @Override
+            public int compare(SavingsTrackerSystem.TransactionRecord r1, SavingsTrackerSystem.TransactionRecord r2) {
+                return r2.transaction.getDate().compareTo(r1.transaction.getDate());
+            }
+        });
+
+        // Loop through the sorted list, but only take the first 10 items (or fewer if there aren't 10 yet)
+        int limit = Math.min(10, all.size());
+        for (int i = 0; i < limit; i++) {
             SavingsTrackerSystem.TransactionRecord rec = all.get(i);
             ImageIcon icon = null;
             try {
@@ -245,7 +255,7 @@ public class DashboardPanel extends JPanel {
             tableModel.addRow(new Object[]{
                     new Object[]{icon, rec.bank.getBankName()},
                     rec.wallet.getWalletName(),
-                    rec.transaction.getDate(),
+                    rec.transaction.getDate(), // This will now display the combined Date and Time
                     rec.transaction.getAmount()
             });
         }

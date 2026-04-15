@@ -40,7 +40,7 @@ public class ViewSavingsPanel extends JPanel {
         card.add(title, BorderLayout.NORTH);
 
         // Table setup
-        String[] columns = {"Bank", "Wallet", "Description", "Date", "Amount ($)"};
+        String[] columns = {"Bank", "Wallet", "Description", "Date & Time", "Amount ($)"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }

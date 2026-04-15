@@ -8,11 +8,14 @@ import model.Wallet;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Redesigned Panel for adding a new savings record.
  * Uses positive/negative numbers for income/expense.
+ * Automatically stamps the exact time of entry.
  */
 public class AddSavingsPanel extends JPanel {
     private JTextField descriptionField;
@@ -45,7 +48,7 @@ public class AddSavingsPanel extends JPanel {
         hint.setFont(UIUtils.FONT_SUBTITLE);
         hint.setForeground(UIUtils.COLOR_TEXT_MUTED);
         hint.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        
+
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         headerPanel.add(title, BorderLayout.NORTH);
@@ -63,7 +66,7 @@ public class AddSavingsPanel extends JPanel {
         // --- Bank selection ---
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
         formPanel.add(createLabel("Bank:"), gbc);
-        
+
         gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0;
         bankComboBox = new JComboBox<>();
         styleComboBox(bankComboBox);
@@ -81,7 +84,7 @@ public class AddSavingsPanel extends JPanel {
         // --- Wallet selection ---
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         formPanel.add(createLabel("Wallet:"), gbc);
-        
+
         gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1.0;
         walletComboBox = new JComboBox<>();
         styleComboBox(walletComboBox);
@@ -98,7 +101,7 @@ public class AddSavingsPanel extends JPanel {
         // --- Description ---
         gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
         formPanel.add(createLabel("Description:"), gbc);
-        
+
         gbc.gridx = 1; gbc.gridy = 3; gbc.weightx = 1.0;
         descriptionField = createStyledTextField();
         formPanel.add(descriptionField, gbc);
@@ -106,15 +109,16 @@ public class AddSavingsPanel extends JPanel {
         // --- Amount ---
         gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0;
         formPanel.add(createLabel("Amount:"), gbc);
-        
+
         gbc.gridx = 1; gbc.gridy = 4; gbc.weightx = 1.0;
         amountField = createStyledTextField();
         formPanel.add(amountField, gbc);
 
         // --- Date ---
         gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0;
-        formPanel.add(createLabel("Date (YYYY-MM-DD):"), gbc);
-        
+        // Updated label to show that time is handled automatically
+        formPanel.add(createLabel("Date: "), gbc);
+
         gbc.gridx = 1; gbc.gridy = 5; gbc.weightx = 1.0;
         dateField = createStyledTextField();
         dateField.setText(java.time.LocalDate.now().toString());
@@ -158,8 +162,8 @@ public class AddSavingsPanel extends JPanel {
         field.setFont(UIUtils.FONT_REGULAR);
         field.setPreferredSize(new Dimension(0, 40));
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(0, 10, 0, 10)
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(0, 10, 0, 10)
         ));
         return field;
     }
@@ -211,11 +215,18 @@ public class AddSavingsPanel extends JPanel {
             return;
         }
 
+        // --- THE TIME INJECTION LOGIC ---
+        // If the user hasn't manually typed a time (checked by looking for a colon), we add the exact time right now.
+        if (!date.contains(":")) {
+            String currentTime = new SimpleDateFormat(" HH:mm").format(new Date());
+            date = date + currentTime;
+        }
+
         try {
             double amount = Double.parseDouble(amountText);
             selectedWallet.addTransaction(new Transaction(amount, description, date));
             if (profilePanel != null) profilePanel.refreshBanksList();
-            
+
             JOptionPane.showMessageDialog(this, "Transaction added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearFields();
         } catch (NumberFormatException ex) {

@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Redesigned Panel to Edit or Delete existing savings records.
  * Bank is now editable. Amount is the last column with 2 decimal places.
+ * Sorted to show newest transactions first safely.
  */
 public class EditSavingsPanel extends JPanel {
     private JTable table;
@@ -20,6 +21,9 @@ public class EditSavingsPanel extends JPanel {
     private JComboBox<BankAccount> bankBox;
     private JComboBox<Wallet> walletBox;
     private SavingsTrackerSystem.TransactionRecord selectedRecord;
+
+    // Keeps track of the sorted list to ensure the correct record is edited/deleted
+    private java.util.List<SavingsTrackerSystem.TransactionRecord> currentDisplayedRecords;
 
     public EditSavingsPanel() {
         setLayout(new BorderLayout());
@@ -39,8 +43,8 @@ public class EditSavingsPanel extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         card.add(title, BorderLayout.NORTH);
 
-        // --- Table View ---
-        String[] columns = {"Bank", "Wallet", "Description", "Date", "Amount"};
+        // --- Table View (Updated Column Header to "Date & Time") ---
+        String[] columns = {"Bank", "Wallet", "Description", "Date & Time", "Amount"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -141,7 +145,8 @@ public class EditSavingsPanel extends JPanel {
         gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.4;
         editForm.add(descField, gbc);
         gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.1;
-        editForm.add(createLabel("Date:"), gbc);
+        // Updated Label to explicitly remind about the Date & Time formatting
+        editForm.add(createLabel("Date & Time:"), gbc);
         gbc.gridx = 3; gbc.gridy = 1; gbc.weightx = 0.4;
         editForm.add(dateField, gbc);
 
@@ -182,8 +187,8 @@ public class EditSavingsPanel extends JPanel {
         JTextField field = new JTextField();
         field.setFont(UIUtils.FONT_REGULAR);
         field.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220)),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         return field;
     }
@@ -199,10 +204,10 @@ public class EditSavingsPanel extends JPanel {
     }
 
     private void populateFields(int row) {
-        List<SavingsTrackerSystem.TransactionRecord> all = SavingsTrackerSystem.getInstance().getAllTransactionsFlat();
-        if (row < all.size()) {
-            selectedRecord = all.get(row);
-            
+        // Use the sorted list we generated in refreshTable
+        if (currentDisplayedRecords != null && row < currentDisplayedRecords.size()) {
+            selectedRecord = currentDisplayedRecords.get(row);
+
             // Set Bank
             for (int i = 0; i < bankBox.getItemCount(); i++) {
                 if (bankBox.getItemAt(i).getBankName().equals(selectedRecord.bank.getBankName())) {
@@ -211,7 +216,7 @@ public class EditSavingsPanel extends JPanel {
                 }
             }
             updateWalletBox();
-            
+
             // Set Wallet
             for (int i = 0; i < walletBox.getItemCount(); i++) {
                 if (walletBox.getItemAt(i).getWalletName().equals(selectedRecord.wallet.getWalletName())) {
@@ -222,7 +227,7 @@ public class EditSavingsPanel extends JPanel {
 
             descField.setText(selectedRecord.transaction.getDescription());
             amountField.setText(String.format("%.2f", selectedRecord.transaction.getAmount()));
-            dateField.setText(selectedRecord.transaction.getDate());
+            dateField.setText(selectedRecord.transaction.getDate()); // Pulls Date & Time
         }
     }
 
@@ -240,7 +245,7 @@ public class EditSavingsPanel extends JPanel {
             // Update Transaction properties
             selectedRecord.transaction.setDescription(descField.getText());
             selectedRecord.transaction.setAmount(Double.parseDouble(amountField.getText()));
-            selectedRecord.transaction.setDate(dateField.getText());
+            selectedRecord.transaction.setDate(dateField.getText()); // Saves Date & Time
 
             // If bank or wallet changed, move the transaction
             if (newWallet != selectedRecord.wallet) {
@@ -274,10 +279,20 @@ public class EditSavingsPanel extends JPanel {
         List<BankAccount> banks = SavingsTrackerSystem.getInstance().getCurrentUser().getBankAccounts();
         for (BankAccount b : banks) bankBox.addItem(b);
 
-        for (SavingsTrackerSystem.TransactionRecord rec : SavingsTrackerSystem.getInstance().getAllTransactionsFlat()) {
+        // Fetch, store, and sort the transactions (Newest First)
+        currentDisplayedRecords = SavingsTrackerSystem.getInstance().getAllTransactionsFlat();
+        java.util.Collections.sort(currentDisplayedRecords, new java.util.Comparator<SavingsTrackerSystem.TransactionRecord>() {
+            @Override
+            public int compare(SavingsTrackerSystem.TransactionRecord r1, SavingsTrackerSystem.TransactionRecord r2) {
+                return r2.transaction.getDate().compareTo(r1.transaction.getDate());
+            }
+        });
+
+        // Populate the table using the sorted list
+        for (SavingsTrackerSystem.TransactionRecord rec : currentDisplayedRecords) {
             tableModel.addRow(new Object[]{
                     rec.bank.getBankName(), rec.wallet.getWalletName(),
-                    rec.transaction.getDescription(), rec.transaction.getDate(),
+                    rec.transaction.getDescription(), rec.transaction.getDate(), // Displays Date & Time
                     rec.transaction.getAmount()
             });
         }
