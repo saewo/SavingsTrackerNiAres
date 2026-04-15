@@ -23,11 +23,19 @@
         private String currentCard = "Dashboard";
         private Map<String, String> iconMap;
 
+<<<<<<< HEAD
         public SavingsTrackerNiAres() {
             try {
                 // For absolute paths on your hard drive, don't use getResource
                 String path = "C:/SavingsTrackerNiAres/assets/logo.png";
                 ImageIcon img = new ImageIcon(path);
+=======
+    public SavingsTrackerNiAres() {
+        try {
+            // For absolute paths on your hard drive, don't use getResource
+            String path = "/SavingsTrackerNiAres/assets/logo.png";
+            ImageIcon img = new ImageIcon(path);
+>>>>>>> feature-jessie
 
                 // Check if the image actually loaded
                 if (img.getImageLoadStatus() == java.awt.MediaTracker.COMPLETE) {
